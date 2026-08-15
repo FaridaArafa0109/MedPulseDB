@@ -1,0 +1,161 @@
+{% include "header.html" %}
+
+<link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px;">
+                <h2 style="margin: 0;">Patient Master Index</h2>
+                
+                <!-- Search Bar & Add Button -->
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <div class="input-group" style="width: 250px;">
+                        <span class="input-group-addon"><i class="glyphicon glyphicon-search"></i></span>
+                        <input type="text" id="patientSearchInput" class="form-control" placeholder="Search patients...">
+                    </div>
+                    <button type="button" class="btn btn-success" data-toggle="modal" data-target="#addPatientModal">
+                        <span class="glyphicon glyphicon-plus"></span> Register Patient
+                    </button>
+                </div>
+            </div>
+
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-success alert-dismissable">
+                <button type="button" class="close" data-dismiss="alert">×</button>
+                {{ message }}
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+
+            <table class="table table-striped" id="patientsTable" style="background-color: #ffffff; border-radius: 4px;">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Full Name</th>
+                        <th>Gender</th>
+                        <th>Blood Group</th>
+                        <th>Risk Category</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in patients %}
+                    <tr>
+                        <td>{{ row.0 }}</td>
+                        <td>{{ row.1 }}</td>
+                        <td>{{ row.2 }}</td>
+                        <td>{{ row.3 }}</td>
+                        <td>
+                            {% if row.4 == 1 %}
+                                <span class="label label-success">Category 1</span>
+                            {% else %}
+                                <span class="label label-danger">Category 2</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <a href="#" class="btn btn-warning btn-xs" data-toggle="modal" data-target="#editPatientModal{{ row.0 }}">Edit</a>
+                            <a href="/patient/delete/{{ row.0 }}" class="btn btn-danger btn-xs" onclick="return confirm('Delete this patient record?')">Delete</a>
+                        </td>
+                    </tr>
+
+                    <!-- Edit Patient Modal -->
+                    <div id="editPatientModal{{ row.0 }}" class="modal fade" role="dialog">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h4 class="modal-title">Update Patient Profile</h4>
+                                </div>
+                                <div class="modal-body">
+                                    <form action="{{ url_for('patient_update') }}" method="POST">
+                                        <input type="hidden" name="PatientID" value="{{ row.0 }}">
+                                        <div class="form-group">
+                                            <label>Full Name:</label>
+                                            <input type="text" class="form-control" name="FullName" value="{{ row.1 }}" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Gender:</label>
+                                            <select class="form-control" name="Gender">
+                                                <option value="Male" {% if row.2 == 'Male' %}selected{% endif %}>Male</option>
+                                                <option value="Female" {% if row.2 == 'Female' %}selected{% endif %}>Female</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Blood Group:</label>
+                                            <input type="text" class="form-control" name="BloodGroup" value="{{ row.3 }}">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Risk Category:</label>
+                                            <select class="form-control" name="RiskCategory">
+                                                <option value="1" {% if row.4 == 1 %}selected{% endif %}>Category 1 (Low)</option>
+                                                <option value="2" {% if row.4 == 2 %}selected{% endif %}>Category 2 (High)</option>
+                                            </select>
+                                        </div>
+                                        <button class="btn btn-primary" type="submit">Save Changes</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Add Patient Modal -->
+    <div id="addPatientModal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Register New Patient</h4>
+                </div>
+                <div class="modal-body">
+                    <form action="{{ url_for('patient_insert') }}" method="POST">
+                        <div class="form-group">
+                            <label>Full Name:</label>
+                            <input type="text" class="form-control" name="FullName" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Gender:</label>
+                            <select class="form-control" name="Gender">
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Blood Group:</label>
+                            <input type="text" class="form-control" name="BloodGroup" placeholder="e.g., A+, O-">
+                        </div>
+                        <div class="form-group">
+                            <label>Risk Category:</label>
+                            <select class="form-control" name="RiskCategory">
+                                <option value="1">Category 1 (Low)</option>
+                                <option value="2">Category 2 (High)</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-success" type="submit">Submit Profile</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/jquery-3.2.1.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+
+<!-- Live Search Script -->
+<script>
+    $(document).ready(function(){
+        $("#patientSearchInput").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#patientsTable tbody tr").filter(function() {
+                $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script>

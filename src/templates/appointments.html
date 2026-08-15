@@ -1,0 +1,149 @@
+{% include "header.html" %}
+
+<link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px;">
+                <h2 style="margin: 0;">Study Appointments & Specialist Assignments</h2>
+
+                <!-- Search Bar & Add Button -->
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <div class="input-group" style="width: 250px;">
+                        <span class="input-group-addon"><i class="glyphicon glyphicon-search"></i></span>
+                        <input type="text" id="appointmentSearchInput" class="form-control" placeholder="Search appointments...">
+                    </div>
+                    <button type="button" class="btn btn-success" data-toggle="modal" data-target="#addAppointmentModal">
+                        <span class="glyphicon glyphicon-plus"></span> Assign Specialist
+                    </button>
+                </div>
+            </div>
+
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-success alert-dismissable">
+                <button type="button" class="close" data-dismiss="alert">×</button>
+                {{ message }}
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+
+            <table class="table table-striped" id="appointmentsTable" style="background-color: #ffffff; border-radius: 4px;">
+                <thead>
+                    <tr>
+                        <th>Clinical Study</th>
+                        <th>Assigned Specialist</th>
+                        <th>Role</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in appointments %}
+                    <tr>
+                        <td>{{ row.1 if row.1 else 'Unknown Study' }}</td>
+                        <td>{{ row.3 if row.3 else 'Unknown Specialist' }}</td>
+                        <td><span class="label label-info">{{ row.4 }}</span></td>
+                        <td class="text-center">
+                            <a href="#" class="btn btn-warning btn-xs" data-toggle="modal" data-target="#editAppointmentModal{{ row.0 }}_{{ row.2 }}">Edit</a>
+                            <a href="/appointment/delete/{{ row.0 }}/{{ row.2 }}" class="btn btn-danger btn-xs" onclick="return confirm('Remove appointment assignment?')">Delete</a>
+                        </td>
+                    </tr>
+
+                    <!-- Edit Appointment Modal -->
+                    <div id="editAppointmentModal{{ row.0 }}_{{ row.2 }}" class="modal fade" role="dialog">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h4 class="modal-title">Edit Assignment</h4>
+                                </div>
+                                <div class="modal-body">
+                                    <form action="{{ url_for('appointment_update') }}" method="POST">
+                                        <input type="hidden" name="OldStudyID" value="{{ row.0 }}">
+                                        <input type="hidden" name="OldSpecialistID" value="{{ row.2 }}">
+
+                                        <div class="form-group">
+                                            <label>Clinical Study:</label>
+                                            <select class="form-control" name="StudyID">
+                                                {% for st in studies %}
+                                                <option value="{{ st.0 }}" {% if st.0 == row.0 %}selected{% endif %}>{{ st.1 }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Medical Specialist:</label>
+                                            <select class="form-control" name="SpecialistID">
+                                                {% for sp in specialists %}
+                                                <option value="{{ sp.0 }}" {% if sp.0 == row.2 %}selected{% endif %}>{{ sp.1 }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Assigned Role:</label>
+                                            <input type="text" class="form-control" name="AssignedRole" value="{{ row.4 }}" required>
+                                        </div>
+                                        <button class="btn btn-primary" type="submit">Save Changes</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Add Appointment Modal -->
+    <div id="addAppointmentModal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">New Specialist Assignment</h4>
+                </div>
+                <div class="modal-body">
+                    <form action="{{ url_for('appointment_insert') }}" method="POST">
+                        <div class="form-group">
+                            <label>Clinical Study:</label>
+                            <select class="form-control" name="StudyID">
+                                {% for st in studies %}
+                                <option value="{{ st.0 }}">{{ st.1 }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Medical Specialist:</label>
+                            <select class="form-control" name="SpecialistID">
+                                {% for sp in specialists %}
+                                <option value="{{ sp.0 }}">{{ sp.1 }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Assigned Role:</label>
+                            <input type="text" class="form-control" name="AssignedRole" placeholder="e.g. Lead Researcher, Consultant" required>
+                        </div>
+                        <button class="btn btn-success" type="submit">Assign</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/jquery-3.2.1.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+
+<!-- Live Search Script -->
+<script>
+    $(document).ready(function(){
+        $("#appointmentSearchInput").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#appointmentsTable tbody tr").filter(function() {
+                $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script>

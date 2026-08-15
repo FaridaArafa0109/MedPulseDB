@@ -1,0 +1,93 @@
+
+
+<style>
+  /* 1. Global Page Background & Body Styling */
+  body {
+    /* Replace 'background-bg.jpg' with your actual image path inside static/img or static/ */
+    background: linear-gradient(rgba(15, 23, 42, 0.75), rgba(15, 23, 42, 0.75)), 
+                url("{{ url_for('static', filename='background.jpg') }}") no-repeat center center fixed;
+    background-size: cover;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #333333;
+    min-height: 100vh;
+  }
+
+  /* 2. Standardized Navbar Styling */
+  .navbar-custom {
+    background-color: #1e293b !important;
+    border: 1px solid #334155 !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    margin-top: 15px;
+    margin-bottom: 30px;
+    border-radius: 8px !important;
+  }
+
+  /* Brand Logo / Text */
+  .navbar-custom .navbar-brand {
+    color: #38bdf8 !important;
+    font-weight: 700;
+    font-size: 18px;
+    letter-spacing: 0.5px;
+  }
+
+  .navbar-custom .navbar-brand:hover {
+    color: #7dd3fc !important;
+  }
+
+  /* Nav Links */
+  .navbar-custom .nav > li > a {
+    color: #cbd5e1 !important;
+    font-weight: 500;
+    transition: all 0.2s ease-in-out;
+  }
+
+  .navbar-custom .nav > li > a:hover {
+    background-color: #334155 !important;
+    color: #ffffff !important;
+    border-radius: 4px;
+  }
+
+  /* Active Nav Tab */
+  .navbar-custom .nav > li.active > a,
+  .navbar-custom .nav > li.active > a:hover,
+  .navbar-custom .nav > li.active > a:focus {
+    background-color: #0284c7 !important;
+    color: #ffffff !important;
+    font-weight: 600;
+    border-radius: 4px;
+  }
+
+  /* 3. Global Card / Table Wrapper Polish */
+  .container .row > div {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    margin-bottom: 40px;
+  }
+</style>
+
+<nav class="navbar navbar-default navbar-custom">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="{{ url_for('patients') }}">
+        <span class="glyphicon glyphicon-pulse"></span> MedPulse Management System
+      </a>
+    </div>
+
+    <ul class="nav navbar-nav">
+      <li class="{% if request.endpoint == 'patients' %}active{% endif %}">
+        <a href="{{ url_for('patients') }}"><span class="glyphicon glyphicon-user"></span> Patients</a>
+      </li>
+      <li class="{% if request.endpoint == 'specialists' %}active{% endif %}">
+        <a href="{{ url_for('specialists') }}"><span class="glyphicon glyphicon-heart-empty"></span> Specialists</a>
+      </li>
+      <li class="{% if request.endpoint == 'studies' %}active{% endif %}">
+        <a href="{{ url_for('studies') }}"><span class="glyphicon glyphicon-list-alt"></span> Clinical Studies</a>
+      </li>
+      <li class="{% if request.endpoint == 'appointments' %}active{% endif %}">
+        <a href="{{ url_for('appointments') }}"><span class="glyphicon glyphicon-calendar"></span> Appointments</a>
+      </li>
+    </ul>
+  </div>
+</nav>

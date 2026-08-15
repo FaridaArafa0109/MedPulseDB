@@ -1,0 +1,167 @@
+{% include "header.html" %}
+
+<link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px;">
+                <h2 style="margin: 0;">Clinical Studies Directory</h2>
+
+                <!-- Search Bar & Add Button -->
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <div class="input-group" style="width: 250px;">
+                        <span class="input-group-addon"><i class="glyphicon glyphicon-search"></i></span>
+                        <input type="text" id="studySearchInput" class="form-control" placeholder="Search studies...">
+                    </div>
+                    <button type="button" class="btn btn-success" data-toggle="modal" data-target="#addStudyModal">
+                        <span class="glyphicon glyphicon-plus"></span> Create Study
+                    </button>
+                </div>
+            </div>
+
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-success alert-dismissable">
+                <button type="button" class="close" data-dismiss="alert">×</button>
+                {{ message }}
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+
+            <table class="table table-striped" id="studiesTable" style="background-color: #ffffff; border-radius: 4px;">
+                <thead>
+                    <tr>
+                        <th>Study ID</th>
+                        <th>Study Title</th>
+                        <th>Start Date</th>
+                        <th>Status</th>
+                        <th>Associated Patient</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in studies %}
+                    <tr>
+                        <td>{{ row.0 }}</td>
+                        <td><strong>{{ row.1 }}</strong></td>
+                        <td>{{ row.2 }}</td>
+                        <td>
+                            {% if row.3 == 'Active' %}
+                                <span class="label label-success">Active</span>
+                            {% elif row.3 == 'Pending' %}
+                                <span class="label label-warning">Pending</span>
+                            {% else %}
+                                <span class="label label-default">{{ row.3 }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ row.5 if row.5 else 'Unassigned' }}</td>
+                        <td class="text-center">
+                            <a href="#" class="btn btn-warning btn-xs" data-toggle="modal" data-target="#editStudyModal{{ row.0 }}">Edit</a>
+                            <a href="/study/delete/{{ row.0 }}" class="btn btn-danger btn-xs" onclick="return confirm('Remove study record?')">Delete</a>
+                        </td>
+                    </tr>
+
+                    <!-- Edit Study Modal -->
+                    <div id="editStudyModal{{ row.0 }}" class="modal fade" role="dialog">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h4 class="modal-title">Edit Study</h4>
+                                </div>
+                                <div class="modal-body">
+                                    <form action="{{ url_for('study_update') }}" method="POST">
+                                        <input type="hidden" name="StudyID" value="{{ row.0 }}">
+                                        <div class="form-group">
+                                            <label>Title:</label>
+                                            <input type="text" class="form-control" name="StudyTitle" value="{{ row.1 }}" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Start Date:</label>
+                                            <input type="date" class="form-control" name="StartDate" value="{{ row.2 }}" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Status:</label>
+                                            <select class="form-control" name="CurrentStatus">
+                                                <option value="Active" {% if row.3 == 'Active' %}selected{% endif %}>Active</option>
+                                                <option value="Pending" {% if row.3 == 'Pending' %}selected{% endif %}>Pending</option>
+                                                <option value="Completed" {% if row.3 == 'Completed' %}selected{% endif %}>Completed</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Patient:</label>
+                                            <select class="form-control" name="PatientID">
+                                                {% for p in patients %}
+                                                <option value="{{ p.0 }}" {% if p.0 == row.4 %}selected{% endif %}>{{ p.1 }} (ID: {{ p.0 }})</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <button class="btn btn-primary" type="submit">Save Changes</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Add Study Modal -->
+    <div id="addStudyModal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">New Clinical Study</h4>
+                </div>
+                <div class="modal-body">
+                    <form action="{{ url_for('study_insert') }}" method="POST">
+                        <div class="form-group">
+                            <label>Title:</label>
+                            <input type="text" class="form-control" name="StudyTitle" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Start Date:</label>
+                            <input type="date" class="form-control" name="StartDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Status:</label>
+                            <select class="form-control" name="CurrentStatus">
+                                <option value="Active">Active</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Completed">Completed</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Patient:</label>
+                            <select class="form-control" name="PatientID">
+                                {% for p in patients %}
+                                <option value="{{ p.0 }}">{{ p.1 }} (ID: {{ p.0 }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <button class="btn btn-success" type="submit">Create</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/jquery-3.2.1.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+
+<!-- Live Search Script -->
+<script>
+    $(document).ready(function(){
+        $("#studySearchInput").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#studiesTable tbody tr").filter(function() {
+                $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script>
